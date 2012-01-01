@@ -22,6 +22,11 @@
 
 #include "IFile.h"
 
+#include <vector>
+#include <memory>
+
+class IDirectory;
+
 namespace XFILE
 {
   class CFileVDR: public IFile
@@ -39,7 +44,20 @@ namespace XFILE
     virtual int64_t GetPosition();
     virtual int64_t GetLength();
 
-  protected:
-    IFile* const m_proxy;
+  private:
+
+	CURL switchURL(const CURL &original) const;
+	int64_t virtualPos() const;
+
+	struct SubFileInfo {
+		boost::shared_ptr<IFile> file;
+		int64_t pos;
+		int64_t size;
+	};
+	std::vector<SubFileInfo> m_tsFiles;
+
+	int64_t m_pos;
+	int64_t m_virtualStart;
+	unsigned int m_file;
   };
 }
