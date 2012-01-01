@@ -36,6 +36,7 @@
 #else
 #include "FileSmb.h"
 #endif
+#include "FileVDR.h"
 #endif
 #ifdef HAS_FILESYSTEM_CDDA
 #include "FileCDDA.h"
@@ -148,6 +149,7 @@ IFile* CFileFactory::CreateLoader(const CURL& url)
 #else
     else if (strProtocol == "smb") return new CFileSMB();
 #endif
+    else if (strProtocol == "vdr") return new CFileVDR();
 #endif
 #ifdef HAS_FILESYSTEM
 #ifdef HAS_FILESYSTEM_RTV

@@ -2567,6 +2567,8 @@
     </ClCompile>
     <ClCompile Include="..\..\xbmc\storage\DetectDVDType.cpp">
       <Filter>storage</Filter>
+    <ClCompile Include="..\..\xbmc\filesystem\FileVDR.cpp">
+      <Filter>filesystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -5153,9 +5155,14 @@
     <ClInclude Include="..\..\xbmc\filesystem\FileUPnP.h">
       <Filter>filesystem</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="..\..\xbmc\cores\AudioRenderers\IAudioRenderer.h" />
     <ClInclude Include="..\..\xbmc\storage\DetectDVDType.h">
       <Filter>storage</Filter>
+=======
+    <ClInclude Include="..\..\xbmc\filesystem\FileVDR.h">
+      <Filter>filesystem</Filter>
+>>>>>>> Initial version of CFileVDR, simply proxying SMB.
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
