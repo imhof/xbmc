@@ -110,7 +110,7 @@ int64_t CFileVDR::GetPosition()
 int64_t CFileVDR::GetLength()
 {
 	if (m_tsFiles.size() == 0) return 0;
-	return  m_tsFiles.back().pos + m_tsFiles.back().size;
+    return  m_tsFiles.back().pos + m_tsFiles.back().file->GetLength();
 }
 
 bool CFileVDR::Open(const CURL &url)
@@ -133,8 +133,7 @@ bool CFileVDR::Open(const CURL &url)
 			if (info.file.get()) {
 				info.file->Open(items[i]->GetAsUrl());
 				info.pos = pos_sum;
-				info.size = info.file->GetLength();
-				pos_sum += info.size;
+                pos_sum += info.file->GetLength();
 				m_tsFiles.push_back(info);
 			} else {
 				// FIXME: log something?!
@@ -220,7 +219,7 @@ int CFileVDR::FindFileAtPosition(int64_t pos) const
 {
 	// find file that contains the position
 	for (unsigned int i = 0; i < m_tsFiles.size(); ++i) {
-		if (m_tsFiles[i].pos <= pos && (m_tsFiles[i].size + m_tsFiles[i].pos) > pos) {
+        if (m_tsFiles[i].pos <= pos && (m_tsFiles[i].file->GetLength() + m_tsFiles[i].pos) > pos) {
 			return i;
 		}
 	}

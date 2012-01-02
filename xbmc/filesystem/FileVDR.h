@@ -54,7 +54,6 @@ namespace XFILE
 	struct SubFileInfo {
 		boost::shared_ptr<IFile> file;
 		int64_t pos;
-		int64_t size;
 	};
 	std::vector<SubFileInfo> m_tsFiles;
 
