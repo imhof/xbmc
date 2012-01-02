@@ -44,10 +44,11 @@ namespace XFILE
     virtual int64_t GetPosition();
     virtual int64_t GetLength();
 
+    virtual int IoControl(EIoControl request, void* param);
+
   private:
 
 	CURL switchURL(const CURL &original) const;
-	int64_t virtualPos() const;
 
 	struct SubFileInfo {
 		boost::shared_ptr<IFile> file;
@@ -57,7 +58,8 @@ namespace XFILE
 	std::vector<SubFileInfo> m_tsFiles;
 
 	int64_t m_pos;
-	int64_t m_virtualStart;
 	unsigned int m_file;
+
+	std::vector<int64_t> m_marks;
   };
 }
