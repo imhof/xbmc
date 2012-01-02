@@ -31,8 +31,7 @@ using namespace std;
 
 CFileVDR::CFileVDR()
 	: IFile()
-	, m_pos(0)
-	, m_file(0)
+	, m_file(-1)
 {
 }
 
@@ -43,7 +42,7 @@ CFileVDR::~CFileVDR()
 
 bool CFileVDR::Exists(const CURL& url)
 {
-	CURL proxy_url = switchURL(url);
+	CURL proxy_url = SwitchURL(url);
 	IFile* smbDummy = CFileFactory::CreateLoader(proxy_url);
 	ASSERT(smbDummy);
 	return smbDummy->Exists(proxy_url);
@@ -59,7 +58,7 @@ int64_t CFileVDR::Seek(int64_t iFilePosition, int iWhence)
 		new_position = iFilePosition;
 		break;
 	case SEEK_CUR:
-		new_position = m_pos + iFilePosition;
+		new_position = GetPosition() + iFilePosition;
 		break;
 	case SEEK_END:
 		new_position = GetLength() - iFilePosition;
@@ -72,23 +71,13 @@ int64_t CFileVDR::Seek(int64_t iFilePosition, int iWhence)
         return -1;
     }
 
+    m_file = file_no;
+
     // seek and update internal position
-    m_tsFiles[file_no].file->Seek(new_position - m_tsFiles[file_no].pos, SEEK_SET);
-    m_pos = new_position;
-    return m_pos;
+    m_tsFiles[m_file].file->Seek(new_position - m_tsFiles[m_file].pos, SEEK_SET);
+    return GetPosition();
 }
 
-int CFileVDR::FindFileAtPosition(int64_t pos) const
-{
-	// find file that contains the position
-	for (unsigned int i = 0; i < m_tsFiles.size(); ++i) {
-		if (m_tsFiles[i].pos <= pos && (m_tsFiles[i].size + m_tsFiles[i].pos) > pos) {
-			return i;
-		}
-	}
-
-    return -1;
-}
 int CFileVDR::IoControl(EIoControl request, void* param)
 {
 	if (request == IOCTRL_SEEK_POSSIBLE) {
@@ -102,7 +91,7 @@ int CFileVDR::IoControl(EIoControl request, void* param)
 int CFileVDR::Stat(const CURL& url, struct __stat64* buffer)
 {
 	// is this ok? FIXME
-	CURL proxy_url = switchURL(url);
+	CURL proxy_url = SwitchURL(url);
 	IFile* smbDummy = CFileFactory::CreateLoader(proxy_url);
 	ASSERT(smbDummy);
 	return smbDummy->Stat(proxy_url, buffer);
@@ -110,7 +99,12 @@ int CFileVDR::Stat(const CURL& url, struct __stat64* buffer)
 
 int64_t CFileVDR::GetPosition()
 {
-	return m_pos;
+    if(m_file < 0) {
+        return -1;
+    }
+
+    ASSERT(m_file < m_tsFiles.size());
+    return m_tsFiles[m_file].pos + m_tsFiles[m_file].file->GetPosition();
 }
 
 int64_t CFileVDR::GetLength()
@@ -121,7 +115,7 @@ int64_t CFileVDR::GetLength()
 
 bool CFileVDR::Open(const CURL &url)
 {
-	CURL smb_url = switchURL(url);
+	CURL smb_url = SwitchURL(url);
 	IDirectory* base_dir = CFactoryDirectory::Create( smb_url.Get() );
 	if (!base_dir) return false;
 
@@ -182,30 +176,24 @@ bool CFileVDR::Open(const CURL &url)
 		index->Close();
 	}
 
-	m_pos = 0;
 	m_file = 0;
-
 	return true;
 }
 
 unsigned int CFileVDR::Read(void* lpBuf, int64_t uiBufSize)
 {
-	unsigned int bytes_read = 0;
-
 	if (m_tsFiles.empty()) return -1;
 
-	int64_t to_read_in_file =  m_tsFiles[m_file].size - (m_pos - m_tsFiles[m_file].pos);
+    unsigned int bytes_read = m_tsFiles[m_file].file->Read(lpBuf, uiBufSize);
 
-	if (to_read_in_file > uiBufSize) {
-		bytes_read = m_tsFiles[m_file].file->Read(lpBuf, uiBufSize);
-		m_pos += bytes_read;
-	} else {
-		bytes_read = m_tsFiles[m_file].file->Read(lpBuf, to_read_in_file);
-		m_pos += bytes_read;
-		
-		if (m_pos == m_tsFiles[m_file].pos +  m_tsFiles[m_file].size && m_file < m_tsFiles.size()-1) {
-			++m_file;
-		}
+	if (bytes_read < uiBufSize) {
+        if (m_tsFiles[m_file].file->GetPosition() == m_tsFiles[m_file].file->GetLength()) {
+            // file exhausted, do we have another?
+            if (m_file < m_tsFiles.size()-1) {
+                // skip to it, next Read() will take the new subfiel
+                ++m_file;
+            }
+        }
 	}
 
 	return bytes_read;
@@ -221,9 +209,21 @@ void CFileVDR::Close()
 	m_tsFiles.clear();
 }
 
-CURL CFileVDR::switchURL(const CURL &original) const
+CURL CFileVDR::SwitchURL(const CURL &original) const
 {
 	CURL proxy_url(original);
 	proxy_url.SetProtocol("smb");
 	return proxy_url;
+}
+
+int CFileVDR::FindFileAtPosition(int64_t pos) const
+{
+	// find file that contains the position
+	for (unsigned int i = 0; i < m_tsFiles.size(); ++i) {
+		if (m_tsFiles[i].pos <= pos && (m_tsFiles[i].size + m_tsFiles[i].pos) > pos) {
+			return i;
+		}
+	}
+
+    return -1;
 }

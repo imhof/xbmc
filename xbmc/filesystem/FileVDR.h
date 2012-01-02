@@ -48,7 +48,7 @@ namespace XFILE
 
   private:
 
-	CURL switchURL(const CURL &original) const;
+	CURL SwitchURL(const CURL &original) const;
     int FindFileAtPosition(int64_t pos) const;
 
 	struct SubFileInfo {
@@ -58,7 +58,6 @@ namespace XFILE
 	};
 	std::vector<SubFileInfo> m_tsFiles;
 
-	int64_t m_pos;
 	unsigned int m_file;
 	std::vector<int64_t> m_marks;
   };
