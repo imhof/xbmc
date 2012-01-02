@@ -49,6 +49,7 @@ namespace XFILE
   private:
 
 	CURL switchURL(const CURL &original) const;
+    int FindFileAtPosition(int64_t pos) const;
 
 	struct SubFileInfo {
 		boost::shared_ptr<IFile> file;
@@ -59,7 +60,6 @@ namespace XFILE
 
 	int64_t m_pos;
 	unsigned int m_file;
-
 	std::vector<int64_t> m_marks;
   };
 }

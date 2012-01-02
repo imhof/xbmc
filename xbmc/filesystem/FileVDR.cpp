@@ -66,20 +66,29 @@ int64_t CFileVDR::Seek(int64_t iFilePosition, int iWhence)
 		break;
 	}
 
+    // find sub file at position
+    int file_no = FindFileAtPosition(new_position);
+    if (file_no < 0) {
+        return -1;
+    }
+
+    // seek and update internal position
+    m_tsFiles[file_no].file->Seek(new_position - m_tsFiles[file_no].pos, SEEK_SET);
+    m_pos = new_position;
+    return m_pos;
+}
+
+int CFileVDR::FindFileAtPosition(int64_t pos) const
+{
 	// find file that contains the position
 	for (unsigned int i = 0; i < m_tsFiles.size(); ++i) {
-		if (m_tsFiles[i].pos <= new_position && (m_tsFiles[i].size + m_tsFiles[i].pos) > new_position) {
-			// update position
-			m_pos = new_position;
-			m_file = i;
-			m_tsFiles[i].file->Seek(new_position - m_tsFiles[i].pos, SEEK_SET);
-			return m_pos;
+		if (m_tsFiles[i].pos <= pos && (m_tsFiles[i].size + m_tsFiles[i].pos) > pos) {
+			return i;
 		}
 	}
 
-	return -1;
+    return -1;
 }
-
 int CFileVDR::IoControl(EIoControl request, void* param)
 {
 	if (request == IOCTRL_SEEK_POSSIBLE) {
