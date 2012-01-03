@@ -50,6 +50,7 @@
 #else
 #include "SMBDirectory.h"
 #endif
+#include "VDRDirectory.h"
 #endif
 #ifdef HAS_FILESYSTEM_CDDA
 #include "CDDADirectory.h"
@@ -161,6 +162,7 @@ IDirectory* CFactoryDirectory::Create(const CStdString& strPath)
 #else
     if (strProtocol == "smb") return new CSMBDirectory();
 #endif
+    if (strProtocol == "vdr") return new CVDRDirectory();
 #endif
 #ifdef HAS_FILESYSTEM
 #ifdef HAS_FILESYSTEM_DAAP

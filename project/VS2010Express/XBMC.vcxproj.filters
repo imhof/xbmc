@@ -2570,6 +2570,9 @@
     <ClCompile Include="..\..\xbmc\filesystem\FileVDR.cpp">
       <Filter>filesystem</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\xbmc\filesystem\VDRDirectory.cpp">
+      <Filter>filesystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\xbmc\win32\pch.h">
@@ -5163,6 +5166,9 @@
     <ClInclude Include="..\..\xbmc\filesystem\FileVDR.h">
       <Filter>filesystem</Filter>
 >>>>>>> Initial version of CFileVDR, simply proxying SMB.
+    </ClInclude>
+    <ClInclude Include="..\..\xbmc\filesystem\VDRDirectory.h">
+      <Filter>filesystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
