@@ -22,6 +22,7 @@
 #include "VDRDirectory.h"
 
 #include "FactoryDirectory.h"
+#include "FileItem.h"
 
 using namespace XFILE;
 
@@ -38,7 +39,38 @@ CVDRDirectory::~CVDRDirectory()
 bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items)
 {
     ASSERT(m_proxy);
-    return m_proxy->GetDirectory(strPath, items);
+    if (!m_proxy->GetDirectory(strPath, items)) {
+        return false;
+    }
+
+    // update information so that .rec directories are logically handled as single files
+    for (int i = 0; i < items.GetObjectCount(); ++i) {
+        CFileItemPtr current = items[i];
+
+        // change protocol
+        CStdString path = current->GetPath();
+        current->SetPath("vdr:" + path.Mid(4));
+
+        // check if a .rec folder is hiding one level below, if yes -> turn this folder into a "file"
+        if (current->m_bIsFolder) {
+            CFileItemList sub_items;
+            m_proxy->GetDirectory(current->GetPath(), sub_items);
+
+            for (int j = 0; j < sub_items.GetObjectCount(); ++j) {
+                CFileItemPtr current_sub = sub_items[j];
+                if (current_sub->GetPath().Right(4).ToUpper() == ".REC" || current_sub->GetPath().Right(5).ToUpper() == ".REC/") {
+                    current->SetPath(current->GetPath().Left(current->GetPath().size()-1));
+                    current->SetLabel("This is a movie!");
+
+                    current->m_bIsFolder = false;
+                    break;
+                }
+            }
+        }
+
+    }
+
+    return true;
 }
 
 bool CVDRDirectory::Exists(const char* strPath)

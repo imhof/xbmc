@@ -115,13 +115,29 @@ int64_t CFileVDR::GetLength()
 bool CFileVDR::Open(const CURL &url)
 {
 	CURL smb_url = SwitchURL(url);
-	IDirectory* base_dir = CFactoryDirectory::Create( smb_url.Get() );
+    boost::shared_ptr<IDirectory> base_dir(CFactoryDirectory::Create( smb_url.Get() ));
 	if (!base_dir) return false;
 
+    // find .rec subdirectory
 	CFileItemList items;
 	base_dir->GetDirectory( smb_url.Get(), items );
 
-	int64_t pos_sum = 0;
+    CStdString rec_path;
+    for (int i = 0; i < items.Size(); ++i) {
+        if (items[i]->GetPath().Right(5).ToUpper() == ".REC/") {
+            rec_path = items[i]->GetPath();
+            break;
+        }
+    }
+
+    if (rec_path.empty()) {
+        return false;
+    }
+
+    items.Clear();
+    base_dir->GetDirectory( rec_path, items );
+
+    int64_t pos_sum = 0;
 
 	// gather TS files first
 	for (int i = 0; i < items.Size(); ++i) {
