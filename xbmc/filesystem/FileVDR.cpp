@@ -83,7 +83,6 @@ int CFileVDR::IoControl(EIoControl request, void* param)
 	if (request == IOCTRL_SEEK_POSSIBLE) {
 		return 1;
 	}
-
 	return -1;
 }
 
@@ -189,7 +188,7 @@ unsigned int CFileVDR::Read(void* lpBuf, int64_t uiBufSize)
         if (m_tsFiles[m_file].file->GetPosition() == m_tsFiles[m_file].file->GetLength()) {
             // file exhausted, do we have another?
             if (m_file < m_tsFiles.size()-1) {
-                // skip to it, next Read() will take the new subfiel
+                // skip to it, next Read() will take the new subfile
                 ++m_file;
             }
         }

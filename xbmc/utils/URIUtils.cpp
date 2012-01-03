@@ -700,6 +700,11 @@ bool URIUtils::IsMythTV(const CStdString& strFile)
   return strFile.Left(5).Equals("myth:");
 }
 
+bool URIUtils::IsVDR(const CStdString& strFile)
+{
+  return strFile.Left(4).Equals("vdr:");
+}
+
 bool URIUtils::IsHDHomeRun(const CStdString& strFile)
 {
   return strFile.Left(10).Equals("hdhomerun:");

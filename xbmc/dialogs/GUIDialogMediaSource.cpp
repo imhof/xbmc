@@ -291,6 +291,10 @@ void CGUIDialogMediaSource::OnPathBrowse(int item)
     share1.strPath = "smb://";
     share1.strName = g_localizeStrings.Get(20171);
     extraShares.push_back(share1);
+
+    share1.strPath = "vdr://";
+    share1.strName = "VDR Recordings";
+    extraShares.push_back(share1);
 #endif
 
 #ifdef HAS_FILESYSTEM_NFS

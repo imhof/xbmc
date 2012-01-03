@@ -146,6 +146,7 @@ public:
   bool IsVTP() const;
   bool IsLiveTV() const;
   bool IsRSS() const;
+  bool IsVDR() const;
 
   void RemoveExtension();
   void CleanString();
