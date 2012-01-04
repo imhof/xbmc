@@ -51,36 +51,35 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
         CStdString path = current->GetPath();
         path = "vdr:" + path.Mid(4);
 
-        // check if a .rec folder is hiding one level below, if yes -> turn this folder into a "file"
+        // check if a .rec folder is hiding somewhere below
         if (current->m_bIsFolder) {
-            int level = FindRecursiveRec(current->GetPath(), 0);
-
-            if (level == -1) {
+            CStdString rec_path;
+            if( !FindRecursiveRec(path, rec_path) ) {
                 // no recording in sight, drop this
                 items.Remove(i);
                 continue;
-            }
+            } else {
+                if ((std::count(path.begin(), path.end(), '/') + 1) == std::count(rec_path.begin(), rec_path.end(), '/')) {
 
-            if (level == 1) {
-                // a recoding, prepare file item
-                CFileItemList sub_items;
-                m_proxy->GetDirectory(current->GetPath(), sub_items);
+                    // the rec folder is one level deeper -> recording, prepare file item
+                    CFileItemList sub_items;
+                    m_proxy->GetDirectory(rec_path, sub_items);
 
-                for (int j = 0; j < sub_items.GetObjectCount(); ++j) {
-                    CFileItemPtr current_sub = sub_items[j];
-                    if (IsRecordingFolder(current_sub->GetPath())) {
-                        // cutoff trailing slash
-                        path = path.Left(path.size()-1);
-                        current->m_bIsFolder = false;
+                    for (int j = 0; j < sub_items.GetObjectCount(); ++j) {
+                        CFileItemPtr current_sub = sub_items[j];
 
-                        // basic title fixes, FIXME: fix mangled SMB paths
-                        CStdString label = current->GetLabel();
-                        label.Replace('_',' ');
-                        label.Replace('&','/');
-                        current->SetLabel(label);
-
-                        break;
+                        // FIXME: check index, marks, info, etc.
                     }
+
+                    // cutoff trailing slash
+                    path = path.Left(path.size()-1);
+                    current->m_bIsFolder = false;
+
+                    // basic title fixes, FIXME: fix mangled SMB paths
+                    CStdString label = current->GetLabel();
+                    label.Replace('_',' ');
+                    label.Replace('&','/');
+                    current->SetLabel(label);
                 }
             }
         } else {
@@ -113,29 +112,28 @@ DIR_CACHE_TYPE CVDRDirectory::GetCacheType(const CStdString& strPath) const
 }
 
 
-int CVDRDirectory::FindRecursiveRec(const CStdString& strPath, int level) const
+bool CVDRDirectory::FindRecursiveRec(const CStdString& strPath, CStdString &recPath) const
 {
     CFileItemList sub_items;
     if (!m_proxy->GetDirectory(strPath, sub_items)) {
-        return -1;
+        return false;
     }
-
-    ++level;
 
     for (int j = 0; j < sub_items.GetObjectCount(); ++j) {
         CFileItemPtr current_sub = sub_items[j];
-        if (IsRecordingFolder(current_sub->GetPath())) {
+        CStdString sub_path = current_sub->GetPath();
+        if (IsRecordingFolder(sub_path)) {
             // found a recording
-            return level;
+            recPath = sub_path;
+            return true;
         }
 
-        int sub_level = FindRecursiveRec(current_sub->GetPath(), level);
-        if (sub_level != -1) {
-            return sub_level;
+        if (FindRecursiveRec(sub_path, recPath)) {
+            return true;
         }
     }
 
-    return -1;
+    return false;
 }
 
 bool CVDRDirectory::IsRecordingFolder(const CStdString& strPath) const
