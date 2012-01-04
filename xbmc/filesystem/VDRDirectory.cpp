@@ -62,16 +62,17 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
                 items.Remove(i);
                 continue;
             } else {
-                if ((count(path.begin(), path.end(), '/') + 1) == count(rec_path.begin(), rec_path.end(), '/')) {
 
-                    // the rec folder is one level deeper -> recording, prepare file item
+                // if name is mangled or we have real recording, gather additional info from "info" file
+                bool is_rec = (count(path.begin(), path.end(), '/') + 1) == count(rec_path.begin(), rec_path.end(), '/');
+
+                CStdString title = current->GetLabel();
+                CStdString sub_title;
+                CStdString description;
+
+                if (is_rec || title.Find('~') != -1) {
                     CFileItemList sub_items;
                     m_proxy->GetDirectory(rec_path, sub_items);
-
-                    // gather additional info from "info" file
-                    CStdString title;
-                    CStdString sub_title;
-                    CStdString description;
 
                     for (int j = 0; j < sub_items.GetObjectCount(); ++j) {
                         CFileItemPtr current_sub = sub_items[j];
@@ -79,18 +80,22 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
 
                         if (sub_path.Right(5).ToUpper() == "/INFO") {
                             ParseInfoFile(sub_path, title, sub_title, description);
+                            break;
                         }
                     }
+                } else {
+                    // just basic title fixes
+                    title.Replace('_',' ');
+                    title.Replace('&','/');
+                }
 
+                current->SetLabel(title);
+
+                // if the rec folder is one level deeper -> recording, prepare file item
+                if (is_rec) {
                     // cutoff trailing slash
                     path = path.Left(path.size()-1);
                     current->m_bIsFolder = false;
-
-                    // basic title fixes, FIXME: fix mangled SMB paths
-                    CStdString label = current->GetLabel();
-                    label.Replace('_',' ');
-                    label.Replace('&','/');
-                    current->SetLabel(label);
                 }
             }
         } else {
