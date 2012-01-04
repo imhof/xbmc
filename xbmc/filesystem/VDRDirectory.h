@@ -39,6 +39,10 @@ public:
   virtual DIR_CACHE_TYPE GetCacheType(const CStdString& strPath) const;
 
 private:
+
+    int FindRecursiveRec(const CStdString& strPath, int level) const;
+    bool IsRecordingFolder(const CStdString& strPath) const;
+
     boost::shared_ptr<IDirectory> m_proxy;
 };
 
