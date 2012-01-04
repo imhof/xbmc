@@ -22,9 +22,12 @@
 #include "VDRDirectory.h"
 
 #include "FactoryDirectory.h"
+#include "FileFactory.h"
 #include "FileItem.h"
+#include "IFile.h"
 
 using namespace XFILE;
+using namespace std;
 
 CVDRDirectory::CVDRDirectory()
     : IDirectory()
@@ -59,16 +62,24 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
                 items.Remove(i);
                 continue;
             } else {
-                if ((std::count(path.begin(), path.end(), '/') + 1) == std::count(rec_path.begin(), rec_path.end(), '/')) {
+                if ((count(path.begin(), path.end(), '/') + 1) == count(rec_path.begin(), rec_path.end(), '/')) {
 
                     // the rec folder is one level deeper -> recording, prepare file item
                     CFileItemList sub_items;
                     m_proxy->GetDirectory(rec_path, sub_items);
 
+                    // gather additional info from "info" file
+                    CStdString title;
+                    CStdString sub_title;
+                    CStdString description;
+
                     for (int j = 0; j < sub_items.GetObjectCount(); ++j) {
                         CFileItemPtr current_sub = sub_items[j];
+                        CStdString sub_path = current_sub->GetPath();
 
-                        // FIXME: check index, marks, info, etc.
+                        if (sub_path.Right(5).ToUpper() == "/INFO") {
+                            ParseInfoFile(sub_path, title, sub_title, description);
+                        }
                     }
 
                     // cutoff trailing slash
@@ -139,4 +150,34 @@ bool CVDRDirectory::FindRecursiveRec(const CStdString& strPath, CStdString &recP
 bool CVDRDirectory::IsRecordingFolder(const CStdString& strPath) const
 {
     return (strPath.Right(4).ToUpper() == ".REC" || strPath.Right(5).ToUpper() == ".REC/");
+}
+
+void CVDRDirectory::ParseInfoFile(const CStdString &strPath, CStdString &title, CStdString &subTitle, CStdString &description) const
+{
+    boost::shared_ptr<IFile> info(CFileFactory::CreateLoader("smb://dummy"));
+    if (info.get()) {
+        // switch back to SMB URL to read simple file
+        info->Open("smb" + strPath.Mid(3));
+
+        char line[4096] = {0};
+        while (info->ReadString(line, sizeof line - 1)) {
+            if (strlen(line) < 3) {
+                continue;
+            }
+            switch(line[0]) {
+            case 'T':
+                title = &line[2];
+                break;
+            case 'S':
+                subTitle = &line[2];
+                break;
+            case 'D':
+                description = &line[2];
+                break;
+            default:
+                break;
+            }
+        }
+        info->Close();
+    }
 }
