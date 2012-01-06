@@ -36,6 +36,7 @@ SRCS=AddonsDirectory.cpp \
      FileTuxBox.cpp \
      FileUDF.cpp \
      FileUPnP.cpp \
+     FileVDR.cpp \
      FileZip.cpp \
      FTPDirectory.cpp \
      FTPParse.cpp \
@@ -79,6 +80,7 @@ SRCS=AddonsDirectory.cpp \
      udf25.cpp \
      UDFDirectory.cpp \
      UPnPDirectory.cpp \
+     VDRDirectory.cpp \
      VideoDatabaseDirectory.cpp \
      VirtualDirectory.cpp \
      VTPDirectory.cpp \
