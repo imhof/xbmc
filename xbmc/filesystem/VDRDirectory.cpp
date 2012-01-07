@@ -29,6 +29,10 @@
 using namespace XFILE;
 using namespace std;
 
+namespace {
+    int gMaxLevel = 0;
+};
+
 CVDRDirectory::CVDRDirectory()
     : IDirectory()
     , m_proxy(CFactoryDirectory::Create("smb://"))
@@ -70,7 +74,14 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
                 CStdString sub_title;
                 CStdString description;
 
+
+                int level = count(path.begin(), path.end(), '/');
+                if (is_rec && gMaxLevel < level) {
+                    gMaxLevel = level;
+                }
+
                 if (is_rec || title.Find('~') != -1) {
+
                     CFileItemList sub_items;
                     m_proxy->GetDirectory(rec_path, sub_items);
 
@@ -89,7 +100,13 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
                     title.Replace('&','/');
                 }
 
-                current->SetLabel(title);
+                bool is_episode = (is_rec && (gMaxLevel == level));
+
+                if (is_episode) {
+                    current->SetLabel(sub_title);
+                } else {
+                    current->SetLabel(title);
+                }
 
                 // if the rec folder is one level deeper -> recording, prepare file item
                 if (is_rec) {
@@ -187,5 +204,24 @@ void CVDRDirectory::ParseInfoFile(const CStdString &strPath, CStdString &title, 
             }
         }
         info->Close();
+    }
+
+    // fallback to date/time if title or subtitle not found
+    if (title.empty()) {
+        int pos = strPath.Find(".rec");
+        if (pos > 20) {
+            title = strPath.substr(pos-20, 16);
+            title[10] = ' ';
+            title[13] = ':';
+        }
+    } 
+
+    if (subTitle.empty()) {
+        int pos = strPath.Find(".rec");
+        if (pos > 20) {
+            subTitle = strPath.substr(pos-20, 16);
+            subTitle[10] = ' ';
+            subTitle[13] = ':';
+        }
     }
 }
