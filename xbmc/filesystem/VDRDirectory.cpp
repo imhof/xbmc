@@ -57,7 +57,7 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
         // check if a .rec folder is hiding somewhere below
         if (current->m_bIsFolder) {
             CStdString rec_path;
-            if( !FindRecursiveRec(path, rec_path) ) {
+            if( !FindRecursiveRec(path, rec_path, 2) ) { // FIXME: we are looking max 2 levels deep
                 // no recording in sight, drop this
                 items.Remove(i);
                 continue;
@@ -127,9 +127,12 @@ DIR_CACHE_TYPE CVDRDirectory::GetCacheType(const CStdString& strPath) const
     return m_proxy->GetCacheType(strPath);
 }
 
-
-bool CVDRDirectory::FindRecursiveRec(const CStdString& strPath, CStdString &recPath) const
+bool CVDRDirectory::FindRecursiveRec(const CStdString& strPath, CStdString &recPath, int maxDepth) const
 {
+    if (maxDepth <= 0) {
+        return false;
+    }
+
     CFileItemList sub_items;
     if (!m_proxy->GetDirectory(strPath, sub_items)) {
         return false;
@@ -144,7 +147,7 @@ bool CVDRDirectory::FindRecursiveRec(const CStdString& strPath, CStdString &recP
             return true;
         }
 
-        if (FindRecursiveRec(sub_path, recPath)) {
+        if (FindRecursiveRec(sub_path, recPath, maxDepth-1)) {
             return true;
         }
     }

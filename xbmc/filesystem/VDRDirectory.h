@@ -40,7 +40,7 @@ public:
 
 private:
 
-    bool FindRecursiveRec(const CStdString& strPath, CStdString& recPath) const;
+    bool FindRecursiveRec(const CStdString& strPath, CStdString& recPath, int maxDepth) const;
     bool IsRecordingFolder(const CStdString& strPath) const;
     void ParseInfoFile(const CStdString &strPath, CStdString &title, CStdString &subTitle, CStdString &description) const;
 
