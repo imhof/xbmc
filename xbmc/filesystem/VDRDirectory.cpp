@@ -29,10 +29,6 @@
 using namespace XFILE;
 using namespace std;
 
-namespace {
-    int gMaxLevel = 0;
-};
-
 CVDRDirectory::CVDRDirectory()
     : IDirectory()
     , m_proxy(CFactoryDirectory::Create("smb://"))
@@ -74,12 +70,6 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
                 CStdString sub_title;
                 CStdString description;
 
-
-                int level = count(path.begin(), path.end(), '/');
-                if (is_rec && gMaxLevel < level) {
-                    gMaxLevel = level;
-                }
-
                 if (is_rec || title.Find('~') != -1) {
 
                     CFileItemList sub_items;
@@ -100,9 +90,7 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
                     title.Replace('&','/');
                 }
 
-                bool is_episode = (is_rec && (gMaxLevel == level));
-
-                if (is_episode) {
+                if (IsEpisode(path, title, sub_title)) {
                     current->SetLabel(sub_title);
                 } else {
                     current->SetLabel(title);
@@ -192,12 +180,15 @@ void CVDRDirectory::ParseInfoFile(const CStdString &strPath, CStdString &title, 
             switch(line[0]) {
             case 'T':
                 title = &line[2];
+                title.Remove(10);
                 break;
             case 'S':
                 subTitle = &line[2];
+                title.Remove(10);
                 break;
             case 'D':
                 description = &line[2];
+                title.Remove(10);
                 break;
             default:
                 break;
@@ -224,4 +215,35 @@ void CVDRDirectory::ParseInfoFile(const CStdString &strPath, CStdString &title, 
             subTitle[13] = ':';
         }
     }
+}
+
+bool CVDRDirectory::IsEpisode(const CStdString &strPath, const CStdString &title, const CStdString &subTitle) const
+{
+    // get directory name two steps up
+    vector<int> slash_pos;
+    for (int i = strPath.length()-1; i >= 0; --i) {
+        if (strPath[i] == '/') slash_pos.push_back(i);
+    }
+
+    if (slash_pos.size() < 3) {
+        return false;
+    }
+
+    CStdString lowerDir = strPath.substr(slash_pos[1] + 1, slash_pos[0] - slash_pos[1] - 1);
+    CStdString upperDir = strPath.substr(slash_pos[2] + 1, slash_pos[1] - slash_pos[2] - 1);
+
+    if (upperDir.Find('~') != -1) {
+        // mangled upper dir
+        return true;
+    }
+
+    upperDir.Replace('~','/');
+    upperDir.Replace('_',' ');
+
+    if (upperDir == title) {
+        // upper dir as title
+        return true;
+    }
+
+    return false;
 }

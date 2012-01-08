@@ -42,6 +42,7 @@ private:
 
     bool FindRecursiveRec(const CStdString& strPath, CStdString& recPath, int maxDepth) const;
     bool IsRecordingFolder(const CStdString& strPath) const;
+    bool IsEpisode(const CStdString &strPath, const CStdString &title, const CStdString &subTitle) const;
     void ParseInfoFile(const CStdString &strPath, CStdString &title, CStdString &subTitle, CStdString &description) const;
 
     boost::shared_ptr<IDirectory> m_proxy;
