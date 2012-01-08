@@ -101,6 +101,11 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
                     // cutoff trailing slash
                     path = path.Left(path.size()-1);
                     current->m_bIsFolder = false;
+
+                    // get size
+                    boost::shared_ptr<IFile> loader(CFileFactory::CreateLoader(path));
+                    loader->Open(path);
+                    current->m_dwSize = loader->GetLength();
                 }
             }
         } else {
