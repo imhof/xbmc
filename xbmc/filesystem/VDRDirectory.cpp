@@ -25,6 +25,7 @@
 #include "FileFactory.h"
 #include "FileItem.h"
 #include "IFile.h"
+#include "video/VideoInfoTag.h"
 
 using namespace XFILE;
 using namespace std;
@@ -106,6 +107,12 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
                     boost::shared_ptr<IFile> loader(CFileFactory::CreateLoader(path));
                     loader->Open(path);
                     current->m_dwSize = loader->GetLength();
+
+                    // meta data
+                    CVideoInfoTag* video_info = current->GetVideoInfoTag();
+                    video_info->m_strTitle = current->GetLabel();
+                    video_info->m_strShowTitle = title;
+                    video_info->m_strPlot = description;
                 }
             }
         } else {
