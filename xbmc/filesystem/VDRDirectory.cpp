@@ -121,6 +121,15 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
                         video_info->m_iSeason = 1;
                         video_info->m_iEpisode = sub_title.length();
                     }
+                } else {
+                    CFileItemList sub_items;
+
+                    if (m_proxy->GetDirectory(current->GetPath(), sub_items)) {
+                        CStdString episode_count;
+                        episode_count.Format("%d", sub_items.GetObjectCount());
+                        current->SetLabel2( episode_count );
+                        current->SetLabelPreformated(true);
+                    }
                 }
             }
         } else {
