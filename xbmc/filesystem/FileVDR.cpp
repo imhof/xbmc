@@ -161,35 +161,6 @@ bool CFileVDR::Open(const CURL &url)
 		return false;
 	}
 
-	// read in cut marks, compute position via index file
-	m_marks.clear();
-	const int FRAMES_PER_SECOND = 25; // FIXME: is this fixed?
-
-	boost::shared_ptr<IFile> index( CFileFactory::CreateLoader(smb_url.Get() + "/index") );
-	boost::shared_ptr<IFile> marks( CFileFactory::CreateLoader(smb_url.Get() + "/marks") );
-
-	if (index && index->Open( smb_url.Get() + "/index") ) {
-		if (marks && marks->Open(smb_url.Get() + "/marks") ) {
-			char line[256] = {0};
-			while( marks->ReadString(line, 255) ) {
-				int h,m,s,f;
-				sscanf(line,"%1d:%2d:%2d.%2d", &h, &m, &s, &f);
-				int frame = h * (60*60*FRAMES_PER_SECOND) + m * (60 * FRAMES_PER_SECOND) + s * FRAMES_PER_SECOND + f;
-
-				index->Seek(frame * 8, SEEK_SET);
-				int32_t file_pos = 0;
-				int16_t file_no  = 0;
-				index->Read(&file_pos, sizeof file_pos);
-				index->Read(&file_no, sizeof file_no);
-				index->Read(&file_no, sizeof file_no);
-
-				m_marks.push_back( static_cast<int64_t>(m_tsFiles[file_no-1].pos) + file_pos );
-			}
-			marks->Close();
-		}
-		index->Close();
-	}
-
 	m_file = 0;
 	return true;
 }
@@ -240,4 +211,53 @@ int CFileVDR::FindFileAtPosition(int64_t pos) const
 	}
 
     return -1;
+}
+
+bool CFileVDR::GetCutList(const CStdString &strPath, float fps, std::vector<int64_t> & cut_list_in_ms)
+{
+    int mspf = int(1000.0 / fps);
+
+    // find REC dir
+	CURL smb_url = SwitchURL(strPath);
+    boost::shared_ptr<IDirectory> base_dir(CFactoryDirectory::Create( smb_url.Get() ));
+	if (!base_dir) return false;
+
+	CFileItemList items;
+	base_dir->GetDirectory( smb_url.Get(), items );
+
+    CStdString rec_path;
+    for (int i = 0; i < items.Size(); ++i) {
+        if (items[i]->GetPath().Right(5).ToUpper() == ".REC/") {
+            rec_path = items[i]->GetPath();
+            break;
+        }
+    }
+
+    if (rec_path.empty()) {
+        return false;
+    }
+
+	// read in cut marks, compute millisecond values
+	boost::shared_ptr<IFile> marks( CFileFactory::CreateLoader(rec_path + "/marks") );
+
+	if (!marks || !marks->Open(rec_path + "/marks") ) {
+        return false;
+    }
+
+	char line[256] = {0};
+	while( marks->ReadString(line, 255) ) {
+		int h,m,s,f;
+		sscanf(line,"%1d:%2d:%2d.%2d", &h, &m, &s, &f);
+		int64_t milli_secs = (int64_t)h * (60*60*1000) + m * (60*1000) + s*1000 + f*mspf;
+		cut_list_in_ms.push_back( milli_secs );
+	}
+
+    if (cut_list_in_ms.size() > 1) {
+        cut_list_in_ms[0] = 0;
+        cut_list_in_ms[1] = 0;
+    }
+
+	marks->Close();
+
+    return true;
 }

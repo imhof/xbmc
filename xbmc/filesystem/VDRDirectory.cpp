@@ -91,7 +91,9 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
                     title.Replace('&','/');
                 }
 
-                if (IsEpisode(path, title, sub_title)) {
+                bool is_episode = IsEpisode(path, title, sub_title);
+
+                if (is_episode) {
                     current->SetLabel(sub_title);
                 } else {
                     current->SetLabel(title);
@@ -110,9 +112,15 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
 
                     // meta data
                     CVideoInfoTag* video_info = current->GetVideoInfoTag();
+                    video_info->m_strPath = path;
                     video_info->m_strTitle = current->GetLabel();
-                    video_info->m_strShowTitle = title;
                     video_info->m_strPlot = description;
+
+                    if (is_episode) {
+                        video_info->m_strShowTitle = title;
+                        video_info->m_iSeason = 1;
+                        video_info->m_iEpisode = sub_title.length();
+                    }
                 }
             }
         } else {

@@ -24,6 +24,7 @@
 #include "utils/URIUtils.h"
 #include "filesystem/File.h"
 #include "filesystem/MythFile.h"
+#include "filesystem/FileVDR.h"
 #include "settings/AdvancedSettings.h"
 #include "utils/log.h"
 #include "tinyXML/tinyxml.h"
@@ -146,6 +147,13 @@ bool CEdl::ReadEditDecisionLists(const CStdString& strMovie, const float fFrameR
     CLog::Log(LOGDEBUG, "%s - Checking for cut list within MythTV for: %s", __FUNCTION__,
               strMovie.c_str());
     bFound |= ReadMythCutList(strMovie, fFramesPerSecond);
+  }
+  else if (URIUtils::IsVDR(strMovie))
+  {
+    Clear();
+    CLog::Log(LOGDEBUG, "%s - Checking for commercial breaks within VDR for: %s", __FUNCTION__,
+                strMovie.c_str());
+    bFound = ReadVDRCutList(strMovie, fFramesPerSecond);
   }
 
   if (bFound)
@@ -987,6 +995,43 @@ bool CEdl::ReadMythCutList(const CStdString& strMovie, const float fFramesPerSec
               url.GetFileName().c_str());
     return false;
   }
+}
+
+bool CEdl::ReadVDRCutList(const CStdString& strMovie, const float fFramesPerSecond)
+{
+  CFileVDR vdrFile;
+  CURL url(strMovie);
+  if (!vdrFile.Exists(url))
+    return false;
+
+  CLog::Log(LOGDEBUG, "%s - Reading cut list from VDR for: %s", __FUNCTION__,
+            url.GetFileName().c_str());
+
+  std::vector<int64_t> cut_list;
+  if (!vdrFile.GetCutList(strMovie, fFramesPerSecond, cut_list))
+  {
+    CLog::Log(LOGERROR, "%s - Error getting cut list from VDR for: %s", __FUNCTION__,
+              url.GetFileName().c_str());
+    return false;
+  }
+
+  bool found = false;
+  for (unsigned int i = 2; i < cut_list.size(); i+=2)
+  {
+    Cut cut;
+    cut.action = COMM_BREAK;
+    cut.start = cut_list[i-1];
+    cut.end = cut_list[i];
+
+    if (!AddCut(cut)) // Log and continue with errors while still testing.
+      CLog::Log(LOGERROR, "%s - Invalid cut [%s - %s] found in VDR for: %s. Continuing anyway.",
+                __FUNCTION__, MillisecondsToTimeString(cut.start).c_str(),
+                MillisecondsToTimeString(cut.end).c_str(), url.GetFileName().c_str());
+    else
+      found = true;
+  }
+
+  return found;
 }
 
 void CEdl::MergeShortCommBreaks()

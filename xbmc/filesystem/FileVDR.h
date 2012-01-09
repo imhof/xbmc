@@ -47,6 +47,8 @@ namespace XFILE
 
     virtual int IoControl(EIoControl request, void* param);
 
+    bool GetCutList(const CStdString &strPath, float fps, std::vector<int64_t> & cut_list_in_ms);
+
   private:
 
 	CURL SwitchURL(const CURL &original) const;
@@ -59,6 +61,5 @@ namespace XFILE
 	std::vector<SubFileInfo> m_tsFiles;
 
 	unsigned int m_file;
-	std::vector<int64_t> m_marks;
   };
 }
