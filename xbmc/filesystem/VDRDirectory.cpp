@@ -80,7 +80,7 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
                         CFileItemPtr current_sub = sub_items[j];
                         CStdString sub_path = current_sub->GetPath();
 
-                        if (sub_path.Right(5).ToUpper() == "/INFO") {
+                        if (sub_path.Right(5).ToUpper() == "/INFO" || sub_path.Right(9).ToUpper() == "/INFO.VDR") {
                             ParseInfoFile(sub_path, title, sub_title, description);
                             break;
                         }

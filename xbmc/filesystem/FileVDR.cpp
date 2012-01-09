@@ -142,7 +142,7 @@ bool CFileVDR::Open(const CURL &url)
 	// gather TS files first
 	for (int i = 0; i < items.Size(); ++i) {
 		CStdString path = items[i]->GetPath();
-		if (path.Right(3).ToUpper() == ".TS") {
+		if (path.Right(3).ToUpper() == ".TS" || (path.Right(6)[0] == '0' && path.Right(4).ToUpper() == ".VDR")) {
 			SubFileInfo info;
 			info.file.reset(CFileFactory::CreateLoader("smb://dummy"));
 			if (info.file.get()) {
@@ -240,7 +240,7 @@ bool CFileVDR::GetCutList(const CStdString &strPath, float fps, std::vector<int6
 	// read in cut marks, compute millisecond values
 	boost::shared_ptr<IFile> marks( CFileFactory::CreateLoader(rec_path + "/marks") );
 
-	if (!marks || !marks->Open(rec_path + "/marks") ) {
+	if (!marks || (!marks->Open(rec_path + "/marks") && !marks->Open(rec_path + "/marks.vdr")) ) {
         return false;
     }
 
