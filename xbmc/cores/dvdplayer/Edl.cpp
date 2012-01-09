@@ -1016,7 +1016,7 @@ bool CEdl::ReadVDRCutList(const CStdString& strMovie, const float fFramesPerSeco
   }
 
   bool found = false;
-  for (unsigned int i = 2; i < cut_list.size(); i+=2)
+  for (unsigned int i = 1; i < cut_list.size(); i+=2)
   {
     Cut cut;
     cut.action = COMM_BREAK;

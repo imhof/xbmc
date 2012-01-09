@@ -249,15 +249,28 @@ bool CFileVDR::GetCutList(const CStdString &strPath, float fps, std::vector<int6
 		int h,m,s,f;
 		sscanf(line,"%1d:%2d:%2d.%2d", &h, &m, &s, &f);
 		int64_t milli_secs = (int64_t)h * (60*60*1000) + m * (60*1000) + s*1000 + f*mspf;
+
+        bool is_start = (strstr(line,"lost") == 0);
+
+        if (cut_list_in_ms.empty() && is_start) {
+            // first logo start, cut out beginning to logo
+            cut_list_in_ms.push_back(0);
+        }
+
 		cut_list_in_ms.push_back( milli_secs );
 	}
 
-    if (cut_list_in_ms.size() > 1) {
-        cut_list_in_ms[0] = 0;
-        cut_list_in_ms[1] = 0;
-    }
-
 	marks->Close();
+
+    // improve cut marks with a simple heuristic
+
+    // a break somewhere in the first ten minutes -> also suppress beginning as
+    // we assume start of film after the first break
+    if (cut_list_in_ms.size() > 3) {
+        if (cut_list_in_ms[3] < 10*60*1000) {
+            cut_list_in_ms.erase(cut_list_in_ms.begin()+1, cut_list_in_ms.begin()+3);
+        }
+    }
 
     return true;
 }
