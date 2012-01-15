@@ -58,7 +58,7 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
         // check if a .rec folder is hiding somewhere below
         if (current->m_bIsFolder) {
             CStdString rec_path;
-            if( !FindRecursiveRec(path, rec_path, 2) ) { // FIXME: we are looking max 2 levels deep
+            if( !FindRecursiveRec(path, rec_path, 4) ) { // FIXME: we are looking max 4 levels deep
                 // no recording in sight, drop this
                 items.Remove(i);
                 continue;
