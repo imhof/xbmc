@@ -93,10 +93,12 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
 
                 bool is_episode = IsEpisode(path, title, sub_title);
 
-                if (is_episode) {
+                if (is_episode && is_rec) {
                     current->SetLabel(sub_title);
                 } else {
-                    current->SetLabel(title);
+                    if (title) {
+                        current->SetLabel(title);
+                    }
                 }
 
                 // if the rec folder is one level deeper -> recording, prepare file item
@@ -118,8 +120,8 @@ bool CVDRDirectory::GetDirectory(const CStdString& strPath, CFileItemList &items
 
                     if (is_episode) {
                         video_info->m_strShowTitle = title;
-                        video_info->m_iSeason = 1;
-                        video_info->m_iEpisode = sub_title.length();
+                        //video_info->m_iSeason = 1;
+                        //video_info->m_iEpisode = sub_title.length();
                     }
                 } else {
                     CFileItemList sub_items;
@@ -248,6 +250,11 @@ void CVDRDirectory::ParseInfoFile(const CStdString &strPath, CStdString &title, 
 
 bool CVDRDirectory::IsEpisode(const CStdString &strPath, const CStdString &title, const CStdString &subTitle) const
 {
+    if (strPath.Find("Series/") != -1) {
+        // these are put there by a VDR plugin
+        return true;
+    }
+
     // get directory name two steps up
     vector<int> slash_pos;
     for (int i = strPath.length()-1; i >= 0; --i) {
