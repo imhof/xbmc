@@ -89,11 +89,19 @@ int CFileVDR::IoControl(EIoControl request, void* param)
 
 int CFileVDR::Stat(const CURL& url, struct __stat64* buffer)
 {
-	// is this ok? FIXME
-	CURL proxy_url = SwitchURL(url);
-	IFile* smbDummy = CFileFactory::CreateLoader(proxy_url);
-	ASSERT(smbDummy);
-	return smbDummy->Stat(proxy_url, buffer);
+    // is this ok? FIXME
+    CURL proxy_url = SwitchURL(url);
+    IFile* smbDummy = CFileFactory::CreateLoader(proxy_url);
+    ASSERT(smbDummy);
+    return smbDummy->Stat(proxy_url, buffer);
+}
+
+bool CFileVDR::Delete(const CURL& url)
+{
+    CStdString proxy_url = SwitchURL(url).Get();
+    IDirectory* smbDummy = CFactoryDirectory::Create(proxy_url);
+    ASSERT(smbDummy);
+    return smbDummy->Remove(proxy_url   );
 }
 
 int64_t CFileVDR::GetPosition()

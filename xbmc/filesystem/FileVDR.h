@@ -30,14 +30,15 @@ class IDirectory;
 
 namespace XFILE
 {
-  class CFileVDR: public IFile
-  {
-  public:
+class CFileVDR: public IFile
+{
+public:
     CFileVDR();
     virtual ~CFileVDR();
     virtual bool Open(const CURL& url);
     virtual bool Exists(const CURL& url);
     virtual int Stat(const CURL& url, struct __stat64* buffer);
+    virtual bool Delete(const CURL& url);
 
     virtual unsigned int Read(void* lpBuf, int64_t uiBufSize);
     virtual int64_t Seek(int64_t iFilePosition, int iWhence = SEEK_SET);
@@ -49,17 +50,17 @@ namespace XFILE
 
     bool GetCutList(const CStdString &strPath, float fps, std::vector<int64_t> & cut_list_in_ms);
 
-  private:
+private:
 
-	CURL SwitchURL(const CURL &original) const;
+    CURL SwitchURL(const CURL &original) const;
     int FindFileAtPosition(int64_t pos) const;
 
-	struct SubFileInfo {
-		boost::shared_ptr<IFile> file;
-		int64_t pos;
-	};
-	std::vector<SubFileInfo> m_tsFiles;
+    struct SubFileInfo {
+        boost::shared_ptr<IFile> file;
+        int64_t pos;
+    };
+    std::vector<SubFileInfo> m_tsFiles;
 
-	unsigned int m_file;
-  };
+    unsigned int m_file;
+};
 }
