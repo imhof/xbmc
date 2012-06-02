@@ -147,6 +147,9 @@ bool CFileVDR::Open(const CURL &url)
 
     int64_t pos_sum = 0;
 
+    // sort all items
+    items.Sort(SORT_METHOD_FILE, SORT_ORDER_ASC);
+
     // gather TS files first
     for (int i = 0; i < items.Size(); ++i) {
         CStdString path = items[i]->GetPath();
