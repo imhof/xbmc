@@ -2565,13 +2565,8 @@
     <ClCompile Include="..\..\xbmc\filesystem\FileUPnP.cpp">
       <Filter>filesystem</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\xbmc\storage\DetectDVDType.cpp">
-      <Filter>storage</Filter>
-    <ClCompile Include="..\..\xbmc\filesystem\FileVDR.cpp">
-      <Filter>filesystem</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\xbmc\filesystem\VDRDirectory.cpp">
-      <Filter>filesystem</Filter>
+    <ClCompile Include="..\..\xbmc\cores\paplayer\PCMCodec.cpp">
+      <Filter>cores\paplayer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -5159,16 +5154,11 @@
     <Filter>filesystem</Filter>
     </ClInclude>
     <ClInclude Include="..\..\xbmc\cores\AudioRenderers\IAudioRenderer.h" />
-    <Filter>cores\AudioRenderers</Filter>
+    <ClInclude Include="..\..\xbmc\interfaces\python\xbmcmodule\pythreadstate.h">
+      <Filter>interfaces\python\xbmcmodule</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\xbmc\storage\DetectDVDType.h">
-      <Filter>storage</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\filesystem\FileVDR.h">
-      <Filter>filesystem</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\xbmc\filesystem\VDRDirectory.h">
-      <Filter>filesystem</Filter>
+    <ClInclude Include="..\..\xbmc\cores\paplayer\PCMCodec.h">
+      <Filter>cores\paplayer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
